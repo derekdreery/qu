@@ -9,6 +9,6 @@ struct Opt {
 #[qu::ick]
 fn main(opt: Opt) -> Result {
     log::warn!("you'll only see this if you use verbose");
-    log::info!("hello world");
+    log::info!("hello info");
     Ok(())
 }
