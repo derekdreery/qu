@@ -65,7 +65,9 @@ impl ToTokens for Main {
             }
             fn main() {
                 let opts: __wrapping_Opt = ::qu::ick_use::StructOpt::from_args();
-                let log_level = match opts.verbose.checked_sub(opts.quiet).unwrap() {
+                let log_level = match opts.verbose.checked_sub(opts.quiet)
+                    .expect("very unexpected overflow when doing `verbose` - `quiet`")
+                {
                     n if n < -1 => ::qu::ick_use::log::LevelFilter::Off,
                     -1 => ::qu::ick_use::log::LevelFilter::Error,
                     0 => ::qu::ick_use::log::LevelFilter::Warn,
