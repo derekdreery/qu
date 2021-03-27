@@ -19,11 +19,8 @@ macro_rules! bail {
 
 #[proc_macro_attribute]
 pub fn ick(_: proc_macro::TokenStream, s: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let main: Main = match syn::parse(s) {
-        Ok(s) => s,
-        Err(e) => return e.to_compile_error().into(),
-    };
-    main.to_token_stream().into()
+    let main = syn::parse_macro_input!(s as Main);
+    quote!(#main).into()
 }
 
 struct Main {
@@ -54,22 +51,32 @@ impl ToTokens for Main {
         let opt_type = &self.opt_type;
         let body = &self.body;
         tokens.extend(quote! {
+            #[derive(StructOpt)]
+            struct __wrapping_Opt {
+                #[structopt(flatten)]
+                #opt_name: #opt_type,
+                #[structopt(short, long, parse(from_occurrences))]
+                pub quiet: i8,
+                #[structopt(short, long, parse(from_occurrences))]
+                pub verbose: i8,
+            }
             fn _main_inner(#opt_name: #opt_type) -> ::qu::ick_use::Result {
                 #body
             }
             fn main() {
-                let #opt_name: #opt_type = ::qu::ick_use::StructOpt::from_args();
-                let log_level = match #opt_name.verbosity {
-                    0 => ::qu::ick_use::log::LevelFilter::Error,
-                    1 => ::qu::ick_use::log::LevelFilter::Warn,
-                    2 => ::qu::ick_use::log::LevelFilter::Info,
-                    3 => ::qu::ick_use::log::LevelFilter::Debug,
+                let opts: __wrapping_Opt = ::qu::ick_use::StructOpt::from_args();
+                let log_level = match opts.verbose.checked_sub(opts.quiet).unwrap() {
+                    n if n < -1 => ::qu::ick_use::log::LevelFilter::Off,
+                    -1 => ::qu::ick_use::log::LevelFilter::Error,
+                    0 => ::qu::ick_use::log::LevelFilter::Warn,
+                    1 => ::qu::ick_use::log::LevelFilter::Info,
+                    2 => ::qu::ick_use::log::LevelFilter::Debug,
                     _ => ::qu::ick_use::log::LevelFilter::Trace,
                 };
                 ::qu::env_logger::builder()
                     .filter_level(log_level)
                     .init();
-                if let Err(e) = _main_inner(#opt_name) {
+                if let Err(e) = _main_inner(opts.#opt_name) {
                     ::qu::ick_use::log::error!("{:?}", e);
                     ::std::process::exit(1);
                 }
