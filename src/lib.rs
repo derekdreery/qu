@@ -1,6 +1,8 @@
 pub mod ick_use {
     pub use ::anyhow::{format_err, ensure, bail, Error, Context as _};
     pub use ::log;
+    // You currently have to include structopt directly in your Cargo.toml because it uses a direct
+    // path internally.
     pub use ::structopt::StructOpt;
 
     /// Like `anyhow::Result`, but defaults the `Ok` case to `()`.
