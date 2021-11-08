@@ -11,10 +11,10 @@ use syn::{
 
 macro_rules! bail {
     ($msg:expr) => {
-        return Err(syn::Error::new(Span::call_site(), $msg));
+        return Err(syn::Error::new(Span::call_site(), $msg))
     };
     ($span:expr, $msg:expr) => {
-        return Err(syn::Error::new($span, $msg));
+        return Err(syn::Error::new($span, $msg))
     };
 }
 
@@ -99,22 +99,33 @@ impl Quick {
 }
 
 struct Main {
-    opt_name: Ident,
-    opt_type: Type,
+    /// Optional structopt. If not present, then a default one is used
+    opt: Option<Opt>,
     body: Box<Block>,
+}
+
+struct Opt {
+    name: Ident,
+    type_: Type,
 }
 
 impl Parse for Main {
     fn parse(input: ParseStream) -> Result<Self> {
         let inner: ItemFn = Parse::parse(input)?;
         let inputs = &inner.sig.inputs;
-        if inputs.len() != 1 {
-            bail!(inputs.span(), "main function should have 1 argument");
+        if inputs.len() > 1 {
+            bail!(
+                inputs.span(),
+                "main function should have at most 1 argument"
+            );
         }
-        let (opt_name, opt_type) = get_ident(inputs.first().unwrap())?;
+        let opt = if let Some(input) = inputs.first() {
+            Some(get_ident(input)?)
+        } else {
+            None
+        };
         Ok(Main {
-            opt_name,
-            opt_type,
+            opt,
             body: inner.block,
         })
     }
@@ -122,21 +133,29 @@ impl Parse for Main {
 
 impl ToTokens for Quick {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let opt_name = &self.main.opt_name;
-        let opt_type = &self.main.opt_type;
         let body = &self.main.body;
         let default_log = self.log_level_as_int();
+        let mut custom_opt = quote!();
+        let mut inner_args = quote!();
+        let mut inner_call = quote!();
+        if let Some(Opt { name, type_ }) = &self.main.opt {
+            custom_opt = quote! {
+                #[structopt(flatten)]
+                #name: #type_,
+            };
+            inner_args = quote!(#name: #type_);
+            inner_call = quote!(opts.#name);
+        };
         tokens.extend(quote! {
             #[derive(StructOpt)]
             struct __wrapping_Opt {
-                #[structopt(flatten)]
-                #opt_name: #opt_type,
+                #custom_opt
                 #[structopt(short, long, parse(from_occurrences))]
                 pub quiet: i8,
                 #[structopt(short, long, parse(from_occurrences))]
                 pub verbose: i8,
             }
-            fn _main_inner(#opt_name: #opt_type) -> ::qu::ick_use::Result {
+            fn _main_inner(#inner_args) -> ::qu::ick_use::Result {
                 #body
             }
             fn main() {
@@ -152,7 +171,7 @@ impl ToTokens for Quick {
                 ::qu::env_logger::builder()
                     .filter_level(log_level)
                     .init();
-                if let Err(e) = _main_inner(opts.#opt_name) {
+                if let Err(e) = _main_inner(#inner_call) {
                     ::qu::ick_use::log::error!("{:?}", e);
                     ::std::process::exit(1);
                 }
@@ -161,11 +180,14 @@ impl ToTokens for Quick {
     }
 }
 
-fn get_ident(input: &syn::FnArg) -> Result<(Ident, Type)> {
+fn get_ident(input: &syn::FnArg) -> Result<Opt> {
     use syn::{FnArg, Pat};
     Ok(match input {
         FnArg::Typed(v) => match &*v.pat {
-            Pat::Ident(v_inner) => (v_inner.ident.clone(), (*v.ty).clone()),
+            Pat::Ident(v_inner) => Opt {
+                name: v_inner.ident.clone(),
+                type_: (*v.ty).clone(),
+            },
             _ => bail!(v.pat.span(), "should be an ident (e.g. `opt`)"),
         },
         _ => bail!(input.span(), "argument should be in form `opt: Opt`)"),

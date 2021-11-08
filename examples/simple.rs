@@ -10,10 +10,11 @@ struct Opt {
 
 #[qu::ick]
 fn main(opt: Opt) -> Result {
-    log::warn!("you'll see this unless you do -q");
+    log::warn!("you'll see this unless you do -qq");
     log::info!(
-        "(use -v to get info) selected file: {}",
+        "selected file: {} (by default, use -q to hide info)",
         opt.file_name.display()
     );
+    log::trace!("you'll only see this if you do -vv (by default)");
     Ok(())
 }
