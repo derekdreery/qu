@@ -1,0 +1,1 @@
+ - Make the logger only ever log max `warn` from dependant crates (otherwise following the verbose/quiet direction).
