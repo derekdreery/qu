@@ -2,9 +2,9 @@ use qu::ick_use::*;
 use std::path::PathBuf;
 
 // This struct must not contain fields called `verbose` or `quiet` as these are used by `qu`.
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Parser)]
 struct Opt {
-    #[structopt(parse(from_os_str))]
+    #[clap(parse(from_os_str))]
     file_name: PathBuf,
 }
 

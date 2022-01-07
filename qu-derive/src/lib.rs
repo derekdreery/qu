@@ -99,7 +99,7 @@ impl Quick {
 }
 
 struct Main {
-    /// Optional structopt. If not present, then a default one is used
+    /// Optional clap parser. If not present, then a default one is used
     opt: Option<Opt>,
     body: Box<Block>,
 }
@@ -140,26 +140,27 @@ impl ToTokens for Quick {
         let mut inner_call = quote!();
         if let Some(Opt { name, type_ }) = &self.main.opt {
             custom_opt = quote! {
-                #[structopt(flatten)]
+                #[clap(flatten)]
                 #name: #type_,
             };
             inner_args = quote!(#name: #type_);
             inner_call = quote!(opts.#name);
         };
         tokens.extend(quote! {
-            #[derive(StructOpt)]
+            #[derive(Parser)]
+            #[allow(non_camel_case_types)]
             struct __wrapping_Opt {
                 #custom_opt
-                #[structopt(short, long, parse(from_occurrences))]
+                #[clap(short, long, parse(from_occurrences))]
                 pub quiet: i8,
-                #[structopt(short, long, parse(from_occurrences))]
+                #[clap(short, long, parse(from_occurrences))]
                 pub verbose: i8,
             }
             fn _main_inner(#inner_args) -> ::qu::ick_use::Result {
                 #body
             }
             fn main() {
-                let opts: __wrapping_Opt = ::qu::ick_use::StructOpt::from_args();
+                let opts: __wrapping_Opt = ::qu::ick_use::Parser::parse();
                 let log_level = match #default_log.saturating_add(opts.verbose).saturating_sub(opts.quiet) {
                     0 => ::qu::ick_use::log::LevelFilter::Off,
                     1 => ::qu::ick_use::log::LevelFilter::Error,

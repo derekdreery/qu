@@ -1,9 +1,9 @@
 pub mod ick_use {
-    pub use ::anyhow::{format_err, ensure, bail, Error, Context as _};
+    pub use ::anyhow::{bail, ensure, format_err, Context as _, Error};
     pub use ::log;
-    // You currently have to include structopt directly in your Cargo.toml because it uses a direct
+    // You currently have to include clap directly in your Cargo.toml because it uses a direct
     // path internally.
-    pub use ::structopt::StructOpt;
+    pub use ::clap::Parser;
 
     /// Like `anyhow::Result`, but defaults the `Ok` case to `()`.
     ///
