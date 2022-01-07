@@ -7,13 +7,13 @@ use qu::ick_use::*;
 use std::path::PathBuf;
 
 // This struct must not contain fields called `verbose` or `quiet` as these are used by `qu`.
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Parser)]
 struct Opt {
-    #[structopt(parse(from_os_str))]
+    #[clap(parse(from_os_str))]
     file_name: PathBuf,
 }
 
-// This function must contain exactly one argument that implements `StructOpt`, and should return
+// This function must contain exactly one argument that implements `clap::Parser`, and should return
 // `qu::ick_use::Result` (although in reality your selected return type is ignored and
 // `qu::ick_use::Result` is always used). The body of th method is copied verbatim.
 #[qu::ick]

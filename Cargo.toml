@@ -2,7 +2,7 @@
 name = "qu"
 description = "quick command line programs"
 readme = "README.md"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["Richard Dodd <richard.o.dodd@gmail.com>"]
 edition = "2018"
 license = "MIT/Apache-2.0"
