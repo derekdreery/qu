@@ -105,6 +105,7 @@ struct Main {
 }
 
 struct Opt {
+    is_mut: bool,
     name: Ident,
     type_: Type,
 }
@@ -120,7 +121,7 @@ impl Parse for Main {
             );
         }
         let opt = if let Some(input) = inputs.first() {
-            Some(get_ident(input)?)
+            Some(parse_opt_arg(input)?)
         } else {
             None
         };
@@ -138,12 +139,18 @@ impl ToTokens for Quick {
         let mut custom_opt = quote!();
         let mut inner_args = quote!();
         let mut inner_call = quote!();
-        if let Some(Opt { name, type_ }) = &self.main.opt {
+        if let Some(Opt {
+            is_mut,
+            name,
+            type_,
+        }) = &self.main.opt
+        {
+            let mut_tok = if *is_mut { quote!(mut) } else { quote!() };
             custom_opt = quote! {
                 #[clap(flatten)]
                 #name: #type_,
             };
-            inner_args = quote!(#name: #type_);
+            inner_args = quote!(#mut_tok #name: #type_);
             inner_call = quote!(opts.#name);
         };
         tokens.extend(quote! {
@@ -181,11 +188,12 @@ impl ToTokens for Quick {
     }
 }
 
-fn get_ident(input: &syn::FnArg) -> Result<Opt> {
+fn parse_opt_arg(input: &syn::FnArg) -> Result<Opt> {
     use syn::{FnArg, Pat};
     Ok(match input {
         FnArg::Typed(v) => match &*v.pat {
             Pat::Ident(v_inner) => Opt {
+                is_mut: v_inner.mutability.is_some(),
                 name: v_inner.ident.clone(),
                 type_: (*v.ty).clone(),
             },
