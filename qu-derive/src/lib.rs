@@ -86,7 +86,7 @@ struct Quick {
 }
 
 impl Quick {
-    fn log_level_as_int(&self) -> i8 {
+    fn log_level_as_int(&self) -> u8 {
         match self.default_log_level {
             LevelFilter::Off => 0,
             LevelFilter::Error => 1,
@@ -158,10 +158,10 @@ impl ToTokens for Quick {
             #[allow(non_camel_case_types)]
             struct __wrapping_Opt {
                 #custom_opt
-                #[clap(short, long, parse(from_occurrences))]
-                pub quiet: i8,
-                #[clap(short, long, parse(from_occurrences))]
-                pub verbose: i8,
+                #[clap(short, long, action = ::clap::ArgAction::Count)]
+                pub quiet: u8,
+                #[clap(short, long, action = ::clap::ArgAction::Count)]
+                pub verbose: u8,
             }
             fn _main_inner(#inner_args) -> ::qu::ick_use::Result {
                 #body

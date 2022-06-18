@@ -4,7 +4,7 @@ use std::path::PathBuf;
 // This struct must not contain fields called `verbose` or `quiet` as these are used by `qu`.
 #[derive(Debug, Parser)]
 struct Opt {
-    #[clap(parse(from_os_str))]
+    #[clap(value_parser)]
     file_name: PathBuf,
 }
 
