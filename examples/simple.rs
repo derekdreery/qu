@@ -9,7 +9,7 @@ struct Opt {
 }
 
 #[qu::ick]
-fn main(opt: Opt) -> Result {
+async fn main(opt: Opt) -> Result {
     log::warn!("you'll see this unless you do -qq");
     log::info!(
         "selected file: {} (by default, use -q to hide info)",

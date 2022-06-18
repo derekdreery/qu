@@ -99,6 +99,7 @@ impl Quick {
 }
 
 struct Main {
+    is_async: bool,
     /// Optional clap parser. If not present, then a default one is used
     opt: Option<Opt>,
     body: Box<Block>,
@@ -126,6 +127,7 @@ impl Parse for Main {
             None
         };
         Ok(Main {
+            is_async: inner.sig.asyncness.is_some(),
             opt,
             body: inner.block,
         })
@@ -136,9 +138,16 @@ impl ToTokens for Quick {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let body = &self.main.body;
         let default_log = self.log_level_as_int();
+
         let mut custom_opt = quote!();
         let mut inner_args = quote!();
         let mut inner_call = quote!();
+
+        // async support
+        let mut async_tok = quote!();
+        let mut tokio = quote!();
+        let mut await_tok = quote!();
+
         if let Some(Opt {
             is_mut,
             name,
@@ -153,6 +162,11 @@ impl ToTokens for Quick {
             inner_args = quote!(#mut_tok #name: #type_);
             inner_call = quote!(opts.#name);
         };
+        if self.main.is_async {
+            async_tok = quote!(async);
+            tokio = quote!(#[::tokio::main]);
+            await_tok = quote!(.await);
+        }
         tokens.extend(quote! {
             #[derive(Parser)]
             #[allow(non_camel_case_types)]
@@ -163,10 +177,11 @@ impl ToTokens for Quick {
                 #[clap(short, long, action = ::clap::ArgAction::Count)]
                 pub verbose: u8,
             }
-            fn _main_inner(#inner_args) -> ::qu::ick_use::Result {
+            #async_tok fn _main_inner(#inner_args) -> ::qu::ick_use::Result {
                 #body
             }
-            fn main() {
+            #tokio
+            #async_tok fn main() {
                 let opts: __wrapping_Opt = ::qu::ick_use::Parser::parse();
                 let log_level = match #default_log.saturating_add(opts.verbose).saturating_sub(opts.quiet) {
                     0 => ::qu::ick_use::log::LevelFilter::Off,
@@ -179,7 +194,7 @@ impl ToTokens for Quick {
                 ::qu::env_logger::builder()
                     .filter_level(log_level)
                     .init();
-                if let Err(e) = _main_inner(#inner_call) {
+                if let Err(e) = _main_inner(#inner_call) #await_tok {
                     ::qu::ick_use::log::error!("{:?}", e);
                     ::std::process::exit(1);
                 }

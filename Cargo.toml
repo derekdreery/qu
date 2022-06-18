@@ -2,7 +2,7 @@
 name = "qu"
 description = "quick command line programs"
 readme = "README.md"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["Richard Dodd <richard.o.dodd@gmail.com>"]
 edition = "2018"
 license = "MIT/Apache-2.0"
@@ -11,7 +11,7 @@ repository = "https://github.com/derekdreery/qu"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-qu-derive = { version = "0.3.1", path = "qu-derive" }
+qu-derive = { version = "0.3.4", path = "qu-derive" }
 log = "0.4"
 env_logger = "0.8"
 anyhow = "1.0"
@@ -19,3 +19,6 @@ clap = { version = "3.2.5", features = ["derive", "deprecated"] }
 
 [workspace]
 members = [".", "qu-derive"]
+
+[dev-dependencies]
+tokio = { version = "1.19.2", features = ["full"] }
