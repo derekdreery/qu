@@ -9,11 +9,15 @@ struct Opt {
 
 #[qu::ick]
 fn main(opt: Opt) -> Result {
-    log::warn!("you'll see this unless you do -qq");
-    log::info!(
+    event!(Level::WARN, "you'll see this unless you do -qq");
+    event!(
+        Level::INFO,
         "selected file: {} (by default, use -q to hide info)",
         opt.file_name.display()
     );
-    log::trace!("you'll only see this if you do -vv (by default)");
+    event!(
+        Level::TRACE,
+        "you'll only see this if you do -vv (by default)"
+    );
     Ok(())
 }

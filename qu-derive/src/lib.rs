@@ -185,19 +185,21 @@ impl ToTokens for Quick {
             #tokio
             #async_tok fn main() {
                 let opts: __wrapping_Opt = clap::Parser::parse();
-                let log_level = match #default_log.saturating_add(opts.verbose).saturating_sub(opts.quiet) {
-                    0 => ::qu::ick_use::log::LevelFilter::Off,
-                    1 => ::qu::ick_use::log::LevelFilter::Error,
-                    2 => ::qu::ick_use::log::LevelFilter::Warn,
-                    3 => ::qu::ick_use::log::LevelFilter::Info,
-                    4 => ::qu::ick_use::log::LevelFilter::Debug,
-                    _ => ::qu::ick_use::log::LevelFilter::Trace,
+                let filter = match #default_log.saturating_add(opts.verbose).saturating_sub(opts.quiet) {
+                    0 => ::qu::tracing_subscriber::filter::LevelFilter::OFF,
+                    1 => ::qu::tracing_subscriber::filter::LevelFilter::ERROR,
+                    2 => ::qu::tracing_subscriber::filter::LevelFilter::WARN,
+                    3 => ::qu::tracing_subscriber::filter::LevelFilter::INFO,
+                    4 => ::qu::tracing_subscriber::filter::LevelFilter::DEBUG,
+                    _ => ::qu::tracing_subscriber::filter::LevelFilter::TRACE,
                 };
-                ::qu::env_logger::builder()
-                    .filter_level(log_level)
+
+                ::qu::tracing_subscriber::fmt()
+                    .pretty()
+                    .with_max_level(filter)
                     .init();
                 if let Err(e) = _main_inner(#inner_call) #await_tok {
-                    ::qu::ick_use::log::error!("{:?}", e);
+                    event!(Level::ERROR, "{:?}", e);
                     ::std::process::exit(1);
                 }
             }

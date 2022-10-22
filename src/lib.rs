@@ -24,8 +24,9 @@
 //! // `qu::ick_use::Result` is always used). The body of th method is copied verbatim.
 //! #[qu::ick]
 //! fn main(opt: Opt) -> Result {
-//!     log::warn!("you'll see this unless you do -q");
-//!     log::info!(
+//!     event!(Level::WARN, "you'll see this unless you do -q");
+//!     event!(
+//!         Level::INFO,
 //!         "(use -v to get info) selected file: {:?}",
 //!         opt.file_name
 //!     );
@@ -36,11 +37,11 @@
 //! Having arguments is optional - if you don't use them you'll still get `-h`, `-v`, and `-q`.
 //!
 //! ```rust
-//! use qu::ick_use::Result;
+//! use qu::ick_use::*;
 //!
 //! #[qu::ick]
 //! fn main() -> Result {
-//!     log::info!("wooooo");
+//!     event!(Level::INFO, "wooooo");
 //!     Ok(())
 //! }
 //! ```
@@ -60,7 +61,7 @@
 pub mod ick_use {
     pub use ::anyhow::{bail, ensure, format_err, Context as _, Error};
     pub use ::clap::{self, Parser as Clap};
-    pub use ::log;
+    pub use ::tracing::{event, span, Level};
 
     /// Like `anyhow::Result`, but defaults the `Ok` case to `()`.
     ///
@@ -69,6 +70,6 @@ pub mod ick_use {
     pub type Result<T = (), E = Error> = ::std::result::Result<T, E>;
 }
 
-#[doc(hidden)]
-pub use ::env_logger;
 pub use ::qu_derive::ick;
+#[doc(hidden)]
+pub use ::tracing_subscriber;
