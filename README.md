@@ -1,16 +1,24 @@
-`qu` - has opinions on CLI programs so you don't have to!
+# qu
 
-# Example
+`qu` has opinions on CLI programs so you don't have to! It uses...
+
+ - `clap` for argument parsing,
+ - `tracing` for logging infra,
+ - `tokio` for async.
+
+Both `tokio` and `clap` usage are optional. If you don't want to use `tracing` either than you
+don't need this crate - just do `fn main() { .. }`.
+
+## Examples
 
 ```rust
 use qu::ick_use::*;
 use std::path::PathBuf;
 
 // This struct must not contain fields called `verbose` or `quiet` as these are used by `qu`.
-#[derive(Debug, Parser)]
+#[derive(Debug, Clap)] // can use `clap::Parser` instead of `Clap`.
 struct Opt {
-    #[clap(parse(from_os_str))]
-    file_name: PathBuf,
+    file_name: Option<PathBuf>,
 }
 
 // This function must contain exactly one argument that implements `clap::Parser`, and should return
@@ -20,21 +28,35 @@ struct Opt {
 fn main(opt: Opt) -> Result {
     log::warn!("you'll see this unless you do -q");
     log::info!(
-        "(use -v to get info) selected file: {}",
-        opt.file_name.display()
+        "(use -v to get info) selected file: {:?}",
+        opt.file_name
     );
     Ok(())
 }
 ```
 
-# Description
+Having arguments is optional - if you don't use them you'll still get `-h`, `-v`, and `-q`.
+
+```rust
+use qu::ick_use::Result;
+
+#[qu::ick]
+fn main() -> Result {
+    log::info!("wooooo");
+    Ok(())
+}
+```
+
+## Description
 
 This crate contains the macro `qu::ick` that sets up argument parsing, logging and error
 handling with minimal boilerplate. It can do this because it decides for you what your
 configuration should be. If you need a different configuration I'd recommend copying out
 the generated code from the derive macro and tweaking it according to your needs.
 
-# Acknowledgements
+## Acknowledgements
 
 This crate is based on `quicli` and most of the ideas are directly copied from that crate.
 `quicli` may be an alternative if you don't like the opinions this crate has.
+
+License: MIT/Apache-2.0

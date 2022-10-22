@@ -168,13 +168,15 @@ impl ToTokens for Quick {
             await_tok = quote!(.await);
         }
         tokens.extend(quote! {
-            #[derive(Parser)]
+            use ::qu::ick_use::clap;
+
+            #[derive(clap::Parser)]
             #[allow(non_camel_case_types)]
             struct __wrapping_Opt {
                 #custom_opt
-                #[clap(short, long, action = ::clap::ArgAction::Count)]
+                #[clap(short, long, action = clap::ArgAction::Count)]
                 pub quiet: u8,
-                #[clap(short, long, action = ::clap::ArgAction::Count)]
+                #[clap(short, long, action = clap::ArgAction::Count)]
                 pub verbose: u8,
             }
             #async_tok fn _main_inner(#inner_args) -> ::qu::ick_use::Result {
@@ -182,7 +184,7 @@ impl ToTokens for Quick {
             }
             #tokio
             #async_tok fn main() {
-                let opts: __wrapping_Opt = ::qu::ick_use::Parser::parse();
+                let opts: __wrapping_Opt = clap::Parser::parse();
                 let log_level = match #default_log.saturating_add(opts.verbose).saturating_sub(opts.quiet) {
                     0 => ::qu::ick_use::log::LevelFilter::Off,
                     1 => ::qu::ick_use::log::LevelFilter::Error,

@@ -4,7 +4,7 @@ description = "quick command line programs"
 readme = "README.md"
 version = "0.5.1"
 authors = ["Richard Dodd <richard.o.dodd@gmail.com>"]
-edition = "2018"
+edition = "2021"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/derekdreery/qu"
 
@@ -15,10 +15,10 @@ qu-derive = { version = "0.3.4", path = "qu-derive" }
 log = "0.4"
 env_logger = "0.8"
 anyhow = "1.0"
-clap = { version = "3.2.5", features = ["derive", "deprecated"] }
+clap = { version = "4.0", features = ["derive"] }
 
 [workspace]
-members = [".", "qu-derive"]
+members = [".", "qu-derive", "example"]
 
 [dev-dependencies]
 tokio = { version = "1.19.2", features = ["full"] }

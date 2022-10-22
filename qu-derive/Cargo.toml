@@ -3,15 +3,12 @@ name = "qu-derive"
 description = "internal part of qu crate"
 version = "0.3.4"
 authors = ["Richard Dodd <richard.o.dodd@gmail.com>"]
-edition = "2018"
+edition = "2021"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/derekdreery/qu"
 
 [lib]
 proc-macro = true
-
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 syn = { version = "1.0", features = ["full"] }
